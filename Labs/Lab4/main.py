@@ -1,36 +1,28 @@
 import math
 
-
+#вологість грунту
 def M(t: float) -> float:
-    """Функція вологості ґрунту."""
     return 50 * math.exp(-0.1 * t) + 5 * math.sin(t)
 
-
+#точна похідна
 def dM_exact(t: float) -> float:
-    """Точна похідна."""
     return -5 * math.exp(-0.1 * t) + 5 * math.cos(t)
 
 
 def central_diff(f, t: float, h: float) -> float:
-    """Центральна різницева формула для першої похідної."""
     return (f(t + h) - f(t - h)) / (2 * h)
 
-
 def runge_romberg(D_h: float, D_h2: float, p: int) -> float:
-    """Уточнення за методом Рунге–Ромберга."""
     return D_h2 + (D_h2 - D_h) / (2 ** p - 1)
 
-
 def aitken_refinement(D_h: float, D_h2: float, D_h4: float) -> float:
-    """Уточнення за методом Ейткена."""
     denominator = D_h4 - 2 * D_h2 + D_h
     if abs(denominator) < 1e-15:
         raise ZeroDivisionError("Знаменник у формулі Ейткена занадто малий.")
     return D_h - ((D_h2 - D_h) ** 2) / denominator
 
-
+#Оцінка порядку точності Ейткена
 def aitken_order(D_h: float, D_h2: float, D_h4: float) -> float:
-    """Оцінка порядку точності за методом Ейткена."""
     numerator = abs(D_h4 - D_h2)
     denominator = abs(D_h2 - D_h)
     if denominator < 1e-15 or numerator < 1e-15:
@@ -80,7 +72,7 @@ def main() -> None:
     print(f"Похибка при h = 0.01: {err_h:.15e}")
     print()
 
-    # Метод Рунге–Ромберга
+
     p_theoretical = 2
     D_rr = runge_romberg(D_h, D_h2, p_theoretical)
     err_rr = abs(D_rr - exact)
@@ -90,7 +82,7 @@ def main() -> None:
     print(f"Похибка RR = {err_rr:.15e}")
     print()
 
-    # Метод Ейткена
+
     D_aitken = aitken_refinement(D_h, D_h2, D_h4)
     err_aitken = abs(D_aitken - exact)
     p_aitken = aitken_order(D_h, D_h2, D_h4)

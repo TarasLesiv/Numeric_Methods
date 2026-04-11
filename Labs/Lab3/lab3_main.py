@@ -1,4 +1,4 @@
-# main.py
+# lab4_main.py
 from pathlib import Path
 
 from io_utils import read_csv_xy, ensure_default_csv

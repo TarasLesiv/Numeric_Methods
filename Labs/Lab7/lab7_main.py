@@ -70,4 +70,4 @@ if __name__ == "__main__":
             err = vector_norm(sol - 2.5)
             print(f"{name:15} | Ітерацій: {iters:4} | Похибка: {err:.2e}")
     except FileNotFoundError:
-        print("Помилка: Спочатку запусти data_generator.py")
+        print("Помилка: Спочатку запустити data_generator.py")

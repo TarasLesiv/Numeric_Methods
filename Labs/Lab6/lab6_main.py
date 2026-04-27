@@ -1,8 +1,5 @@
 import math
 
-
-# --- Функції зчитування та запису ---
-
 def read_matrix(filename):
     matrix = []
     with open(filename, 'r') as f:
@@ -27,8 +24,6 @@ def save_lu(L, U, filename):
         for row in U:
             f.write(' '.join(map(str, row)) + '\n')
 
-
-# --- Алгоритми LU-розкладу ---
 
 def lu_decomposition(A):
     n = len(A)

@@ -145,7 +145,6 @@ def rk4_auto_step(a, b, y0, h_start, tol):
     return np.array(x_vals), np.array(y_vals), np.array(h_vals), np.array(runge_errors)
 
 def main():
-    print("Початок обчислень...")
 
     x_adams, y_adams, y_pred = adams_fixed_step(a, b, y0, h_initial)
     y_exact_adams = exact_solution(x_adams)

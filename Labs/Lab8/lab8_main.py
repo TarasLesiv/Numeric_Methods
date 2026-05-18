@@ -5,13 +5,13 @@ import matplotlib.pyplot as plt
 BASE_DIR = Path(__file__).resolve().parent
 
 def f(x):
-    return x ** 2 - math.exp(-x)
+    return math.cos(x)
 
 def df(x):
-    return 2 * x + math.exp(-x)
+    return -math.sin(x)
 
 def ddf(x):
-    return 2 - math.exp(-x)
+    return -math.cos(x)
 
 def check_stop(x_new, x_old, eps):
     return abs(f(x_new)) < eps and abs(x_new - x_old) < eps
@@ -38,6 +38,15 @@ def eval_poly(coeffs, x):
     for i, a in enumerate(coeffs):
         res += a * (x ** (m - i))
     return res
+
+def simple_iteration(x0, tau, eps):
+    it = 0
+    x_prev = x0
+    while True:
+        it += 1
+        x_curr = x_prev + tau * f(x_prev)
+        if check_stop(x_curr, x_prev, eps): return x_curr, it
+        x_prev = x_curr
 
 def newton_method(x0, eps):
     it = 0
@@ -66,12 +75,38 @@ def secant_method(x_prev, x_curr, eps):
         if check_stop(x_next, x_curr, eps): return x_next, it
         x_prev, x_curr = x_curr, x_next
 
+def parabolic_method(x0, x1, x2, eps):
+    it = 0
+    while True:
+        it += 1
+        f01 = (f(x1) - f(x0)) / (x1 - x0)
+        f12 = (f(x2) - f(x1)) / (x2 - x1)
+        f012 = (f12 - f01) / (x2 - x0)
+        w = f12 + (x2 - x1) * f012
+        det = math.sqrt(w**2 - 4 * f(x2) * f012)
+        delta = -2 * f(x2) / (w + det if abs(w + det) > abs(w - det) else w - det)
+        x_next = x2 + delta.real
+        if abs(f(x_next)) < eps and abs(x_next - x2) < eps: return x_next, it
+        x0, x1, x2 = x1, x2, x_next
+
+def inverse_interpolation_3p(x0, x1, x2, eps):
+    it = 0
+    while True:
+        it += 1
+        y0, y1, y2 = f(x0), f(x1), f(x2)
+        x_next = (y1*y2)/((y0-y1)*(y0-y2))*x0 + \
+                 (y0*y2)/((y1-y0)*(y1-y2))*x1 + \
+                 (y0*y1)/((y2-y0)*(y2-y1))*x2
+        if abs(f(x_next)) < eps and abs(x_next - x2) < eps: return x_next, it
+        x0, x1, x2 = x1, x2, x_next
+
 def read_coeffs(filename):
     path = Path(filename)
     if not path.is_absolute():
         path = BASE_DIR / path
     with open(path, "r") as f:
         return [float(c) for c in f.read().split()]
+
 
 def horner_newton(a, x0, eps):
     n = len(a) - 1
@@ -126,7 +161,7 @@ def lin_method(a, alpha0, beta0, eps):
 def plot_graphs(x_tab, y_tab, coeffs):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
 
-    ax1.plot(x_tab, y_tab, label='F(x) = x^2 - exp(-x)', color='blue')
+    ax1.plot(x_tab, y_tab, label='F(x) = cos(x)', color='blue')
     ax1.axhline(0, color='red', linestyle='--', linewidth=1)
     ax1.set_title("Трансцендентна функція (Пункт 1)")
     ax1.set_xlabel("x")
@@ -154,17 +189,43 @@ def plot_graphs(x_tab, y_tab, coeffs):
 if __name__ == "__main__":
     EPS = 1e-10
 
+    x_st = 0.7
+    tau_val = -0.5
     x_vals, y_vals = tabulate(-2, 2, 0.1)
+    print("Алгебраїчне рівняння: F(x) = 1x^3 - 3x^2 + 4x - 2")
     coeffs = read_coeffs("coefficients.txt")
+    print("Коефіціїнти: ", coeffs,"\n")
     print("1. Табуляцію завершено (див. tabulation.txt)")
 
     plot_graphs(x_vals, y_vals, coeffs)
 
-    x_start = 0.7
-    print("\n2. Трансцендентне рівняння (x^2 - exp(-x) = 0):")
-    print(f"   Ньютон: {newton_method(x_start, EPS)}")
-    print(f"   Чебишев: {chebyshev_method(x_start, EPS)}")
-    print(f"   Метод Хорд: {secant_method(0.6, 0.8, EPS)}")
+    x_start = 1.0
+    print("РЕЗУЛЬТАТИ ДЛЯ ТРАНСЦЕНДЕНТНОГО РІВНЯННЯ:")
+    res_si = simple_iteration(x_st, tau_val, EPS)
+    print(f"1. Проста ітерація:        x = {abs(res_si[0]):.10f}, ітерацій: {res_si[1]}")
+
+    res_n = newton_method(x_st, EPS)
+    print(f"2. Метод Ньютона:          x = {res_n[0]:.10f}, ітерацій: {res_n[1]}")
+
+    res_ch = chebyshev_method(x_st, EPS)
+    print(f"3. Метод Чебишева:         x = {res_ch[0]:.10f}, ітерацій: {res_ch[1]}")
+
+    res_sec = secant_method(0.6, 0.8, EPS)
+    print(f"4. Метод хорд:             x = {res_sec[0]:.10f}, ітерацій: {res_sec[1]}")
+
+    res_par = parabolic_method(0.5, 0.6, 0.7, EPS)
+    print(f"5. Метод парабол:          x = {res_par[0]:.10f}, ітерацій: {res_par[1]}")
+
+    res_inv = inverse_interpolation_3p(0.5, 0.6, 0.7, EPS)
+    print(f"6. Зворотна інтерполяція:  x = {res_inv[0]:.10f}, ітерацій: {res_inv[1]}")
+
+    print("-" * 50)
+    print("РЕЗУЛЬТАТИ ДЛЯ АЛГЕБРАЇЧНОГО РІВНЯННЯ:")
+    res_h = horner_newton(coeffs, 1.5, EPS)
+    print(f"Дійсний корінь (Горнер):   x = {res_h[0]:.10f}, ітерацій: {res_h[1]}")
+
+    res_l = lin_method(coeffs, 0.5, 0.5, EPS)
+    print(f"Комплексний корінь (Лін):  x = {res_l[0]}, ітерацій: {res_l[1]}")
 
     print("\n3. Алгебраїчне рівняння (з coefficients.txt):")
     real_root, h_it = horner_newton(coeffs, 1.5, EPS)

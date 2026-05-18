@@ -5,6 +5,7 @@ def f1(x):
     #x1^2 + x2^2 - 4 = 0
     return x[0] ** 2 + x[1] ** 2 - 4
 
+
 def f2(x):
     #x2 - exp(x1) = 0
     return x[1] - np.exp(x[0])
@@ -62,11 +63,11 @@ def hooke_jeeves(x0, delta, eps1, eps2, q=2.0, p=2.0):
 
 if __name__ == "__main__":
     X0 = np.array([-1.0, 1.0])
-    DELTA = np.array([0.2, 0.2])  #Початковий крок
-    EPS1 = 1e-4  #Точність по координатах
-    EPS2 = 1e-5  #Точність по функції
-    Q_STEP = 2.0  #Коефіцієнт зменшення кроку
-    P_ACCEL = 1.0  #Коефіцієнт прискорення p
+    DELTA = np.array([0.2, 0.2])
+    EPS1 = 1e-4
+    EPS2 = 1e-5
+    Q_STEP = 2.0
+    P_ACCEL = 1.0
 
     print("Пошук мінімуму методом Хука-Дживса:")
     result, path = hooke_jeeves(X0, DELTA, EPS1, EPS2, Q_STEP, P_ACCEL)
